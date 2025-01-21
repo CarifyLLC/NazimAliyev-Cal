@@ -495,22 +495,24 @@
 
             let KRWUSD = 0;
 
-            try {
+	    try {
                 const apiKey = 'f5106c228dd6e51b2d42b7f5';
                 const response = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
 
-		// Fetch KRW/USD rate and apply a 15₩ subtraction
-    		let KRWUSD = data.conversion_rates.KRW;
-   		KRWUSD -= 4; //
+		// Fetch KRW/USD rate
+        	const rawExchangeRate = data.conversion_rates.KRW;
+        	const adjustedExchangeRate = rawExchangeRate - 15; // Subtract 15 KRW for calculations
 
-                const adjustedBasePriceUSD = adjustedBasePrice / KRWUSD;
+        	// Calculate adjusted base price in USD
+        	const adjustedBasePriceUSD = adjustedBasePrice / adjustedExchangeRate;
 
-                const feeUnder20k = 0.03; // 20000 dolların altında olan endirim faizi
-                const feeOver20k = 0.04; // 20000 dolların üstündə olan endirim faizi
-                const adjustmentUnder20k = 400; // 20000 dolların altında olan medobi
-                const adjustmentOver20k = 200; // 20000 dolların üstündə olan medobi
+
+                const feeUnder20k = 0.03;
+                const feeOver20k = 0.035;
+                const adjustmentUnder20k = 250;
+                const adjustmentOver20k = 50;
 
                 const feePercent = adjustedBasePriceUSD < 20000 ? feeUnder20k : feeOver20k;
                 const adjustment = adjustedBasePriceUSD < 20000 ? adjustmentUnder20k : adjustmentOver20k;
@@ -522,8 +524,9 @@
                 document.getElementById('priceValue').textContent = `$${formattedPrice}`;
                 document.getElementById('result').classList.remove('error');
 
-                const formattedExchangeRate = formatCurrency(KRWUSD, '₩');
-                document.getElementById('exchangeRate').textContent = formattedExchangeRate;
+                // Display raw exchange rate
+        	const formattedRawExchangeRate = formatCurrency(rawExchangeRate, '₩');
+        	document.getElementById('exchangeRate').textContent = formattedRawExchangeRate;
 
                 const checkmark = document.getElementById('checkmark');
                 checkmark.classList.remove('hidden');
